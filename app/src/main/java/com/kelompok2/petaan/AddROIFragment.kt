@@ -59,7 +59,7 @@ class AddROIFragment : Fragment() {
                 "location" to binding!!.locationTextField.text.toString()
             )
             db.collection("reports")
-                .add(report)
+                .add(report)git bra
                 .addOnSuccessListener { dr ->
                     Log.d("Firebase", "DocumentSnapshot ID: ${dr.id}")
                     Toast.makeText(requireContext(), "Report added!", Toast.LENGTH_SHORT).show()
