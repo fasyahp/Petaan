@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "679038024949",
+    "project_id": "petaan",
+    "storage_bucket": "petaan.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:679038024949:android:ab7caca5cc20060b58d9bc",
+        "android_client_info": {
+          "package_name": "com.kelompok2.petaan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuymHsfjZDUZtnPTy5PXw62fM_bvMi2VM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

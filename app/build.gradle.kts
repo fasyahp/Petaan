@@ -1,6 +1,17 @@
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use {
+        localProperties.load(it)
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -15,9 +26,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            type = "String",
+            name = "API_KEY",
+            value = localProperties["API_KEY"].toString()
+        )
     }
 
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
 
@@ -40,12 +58,25 @@ android {
 }
 
 dependencies {
+    //Firebase -> Tambahin dependency-nya di sini
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
+    //Play Services
+    implementation (libs.play.services.location)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.android.sdk)
+    implementation(libs.androidx.navigation.compose)
+    implementation (libs.androidx.navigation.fragment)
+    implementation (libs.androidx.navigation.ui)
+    implementation (libs.androidx.navigation.dynamic.features.fragment)
+    androidTestImplementation (libs.androidx.navigation.testing)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
