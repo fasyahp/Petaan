@@ -33,7 +33,11 @@
         android:id="@+id/addROIFragment"
         android:name="com.kelompok2.petaan.AddROIFragment"
         android:label="fragment_addroi"
-        tools:layout="@layout/fragment_addroi" />
+        tools:layout="@layout/fragment_addroi" >
+        <action
+            android:id="@+id/action_addROIFragment_to_homepageFragment"
+            app:destination="@id/homepageFragment" />
+    </fragment>
     <fragment
         android:id="@+id/listViewFragment"
         android:name="com.kelompok2.petaan.ListViewFragment"

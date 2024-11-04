@@ -15,9 +15,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity.LOCATION_SERVICE
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
-import com.kelompok2.petaan.databinding.FragmentAddroiBinding
 import com.kelompok2.petaan.databinding.FragmentHomepageBinding
-import org.maplibre.android.MapLibre
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
@@ -30,7 +30,7 @@ class HomepageFragment : Fragment() {
     private lateinit var mapLibreMap: MapLibreMap
     private val api_key = BuildConfig.API_KEY
     private val styleUrl = "https://api.maptiler.com/maps/streets-v2/style.json?key=$api_key"
-
+//    private val styleUrl = "https://demotiles.maplibre.org/style.json"
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -48,6 +48,7 @@ class HomepageFragment : Fragment() {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync{ map ->
             map.setStyle(styleUrl)
+            map.cameraPosition = CameraPosition.Builder().target(LatLng(0.0,0.0)).zoom(1.0).build()
         }
 
         val getActivityResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {

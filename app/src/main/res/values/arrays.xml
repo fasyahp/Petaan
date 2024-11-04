@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="severity_items">
+        <item>Low</item>
+        <item>Moderate</item>
+        <item>High</item>
+        <item>Critical</item>
+        <item>Emergency</item>
+    </string-array>
+</resources>
