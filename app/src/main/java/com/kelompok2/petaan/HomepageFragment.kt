@@ -21,7 +21,11 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.firestore
 import com.kelompok2.petaan.databinding.FragmentHomepageBinding
+import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
@@ -102,7 +106,31 @@ class HomepageFragment : Fragment() {
                 .target(LatLng(0.0,0.0))
                 .zoom(1.0)
                 .build()
+            map.setOnMarkerClickListener { m ->
+                map.cameraPosition = CameraPosition
+                    .Builder()
+                    .target(m.position)
+                    .zoom(10.0)
+                    .build()
+                true
+            }
         }
+
+        val db = Firebase.firestore
+        db.collection("reports").get().addOnSuccessListener { documents ->
+            documents.forEach { documentSnapshot ->
+                val latLng: GeoPoint? = documentSnapshot.getGeoPoint("location")
+                mapView.getMapAsync { map ->
+                    map.addMarker(
+                        MarkerOptions().apply {
+                            title = documentSnapshot.get("subject") as String
+                            position = LatLng(latLng!!.latitude, latLng.longitude)
+                        }
+                    )
+                }
+            }
+        }
+
 
         binding!!.mylocationButton.setOnClickListener {
             if (
