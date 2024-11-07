@@ -1,5 +1,6 @@
 [versions]
 agp = "8.7.1"
+algoliasearchClientKotlinVersion = "3.6.4"
 androidSdk = "11.5.2"
 firebaseBom = "33.5.1"
 fragmentKtx = "1.8.5"
@@ -10,15 +11,29 @@ junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 appcompat = "1.6.1"
+kotlinxDatetime = "0.6.1"
+ktorClientAndroid = "3.0.1"
+ktorClientCio = "3.0.1"
+ktorClientContentNegotiation = "3.0.1"
+ktorClientCore = "3.0.1"
+ktorClientCoreJvm = "3.0.1"
+ktorClientJson = "3.0.1"
+ktorClientOkhttp = "3.0.1"
+ktorSerializationKotlinxJson = "3.0.1"
 material = "1.10.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
 materialVersion = "1.7.5"
 navigationFragment = "2.8.3"
+okhttp = "2.7.5"
 playServicesLocation = "21.3.0"
 secretsGradlePlugin = "2.0.1"
+slf4jApi = "2.0.16"
+slf4jSimple = "2.0.16"
+typesenseJava = "1.1.0"
 
 [libraries]
+algolia-algoliasearch-client-kotlin = { module = "com.algolia:algoliasearch-client-kotlin", version.ref = "algoliasearchClientKotlinVersion" }
 android-sdk = { module = "org.maplibre.gl:android-sdk", version.ref = "androidSdk" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
@@ -35,12 +50,25 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktorClientAndroid" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCio" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
+ktor-client-core-jvm = { module = "io.ktor:ktor-client-core-jvm", version.ref = "ktorClientCoreJvm" }
+ktor-client-json = { module = "io.ktor:ktor-client-json", version.ref = "ktorClientJson" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material-v1120 = { module = "com.google.android.material:material", version.ref = "googleMaterial" }
+okhttp = { module = "com.squareup.okhttp:okhttp", version.ref = "okhttp" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4jApi" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
+typesense-java = { module = "org.typesense:typesense-java", version.ref = "typesenseJava" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
