@@ -25,11 +25,12 @@ class LandingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding!!.landingLoginButton.setOnClickListener { view ->
-            view.findNavController().navigate(R.id.loginFragment)
+        binding!!.landingLoginButton.setOnClickListener {
+            //fungsi navigate to fragment yang ada di kelas AuthActivity
+            (activity as AuthActivity).navigateToFragment(LoginFragment())
         }
-        binding!!.landingRegisterButton.setOnClickListener { view ->
-            view.findNavController().navigate(R.id.registrationFragment)
+        binding!!.landingRegisterButton.setOnClickListener {
+            (activity as AuthActivity).navigateToFragment(RegistrationFragment())
         }
     }
 }

@@ -78,7 +78,7 @@ dependencies {
     implementation (libs.androidx.navigation.fragment)
     implementation (libs.androidx.navigation.ui)
     implementation (libs.androidx.navigation.dynamic.features.fragment)
-    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.auth)
     androidTestImplementation (libs.androidx.navigation.testing)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
