@@ -17,7 +17,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class ReportsViewModel : ViewModel() {
-    private val client = SearchClient(appId = "206JYZPK9L", apiKey = "31c5b5af5408e1c92d76aac7477f40c4")
+    private val client = SearchClient(appId = BuildConfig.ALGOLIA_APP_ID, apiKey = BuildConfig.ALGOLIA_SEARCH_KEY)
     fun indexData() {
         val reports = mutableListOf<JsonObject>()
         Firebase.firestore.collection("reports").get().addOnSuccessListener {
