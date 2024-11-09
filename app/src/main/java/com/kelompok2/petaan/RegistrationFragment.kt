@@ -8,12 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestoreSettings
 import com.kelompok2.petaan.databinding.FragmentRegistrationBinding
 
 class RegistrationFragment : Fragment() {
 
     private var binding: FragmentRegistrationBinding? = null
     private lateinit var firebaseAuth: FirebaseAuth
+    private lateinit var firestore: FirebaseFirestore
 
 
     override fun onCreateView(
@@ -30,6 +33,7 @@ class RegistrationFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         firebaseAuth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
         val binding = binding ?: return // biar binding ga null
 
         binding!!.registerButton.setOnClickListener {
@@ -42,9 +46,26 @@ class RegistrationFragment : Fragment() {
             if (email.isNotEmpty() && password.isNotEmpty() && username.isNotEmpty() && name.isNotEmpty()) {
                     firebaseAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Toast.makeText(requireContext(), "Registration Successful", Toast.LENGTH_SHORT).show()
-                                // Optionally navigate to another fragment or activity
+                            val userId = firebaseAuth.currentUser?.uid
+
+                            // Create a user object with name and username
+                            val user = hashMapOf(
+                                "name" to name,
+                                "username" to username,
+                                "email" to email
+                            )
+
+                            // Store user data in Firestore under "users" collection
+                            if (userId != null) {
+                                firestore.collection("users").document(userId)
+                                    .set(user)
+                                    .addOnSuccessListener {
+                                        Toast.makeText(requireContext(), "Registration Successful", Toast.LENGTH_SHORT).show()
+                                        // Optionally navigate to another fragment or activity
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
                             } else {
                                 Toast.makeText(requireContext(), task.exception?.message, Toast.LENGTH_SHORT).show()
                             }
