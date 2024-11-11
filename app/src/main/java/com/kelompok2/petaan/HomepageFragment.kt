@@ -1,11 +1,13 @@
 package com.kelompok2.petaan
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,11 +17,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity.LOCATION_SERVICE
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.firestore
 import com.kelompok2.petaan.databinding.FragmentHomepageBinding
+import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
-import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.LocationComponentOptions
 import org.maplibre.android.maps.MapView
 
 class HomepageFragment : Fragment() {
@@ -27,15 +38,38 @@ class HomepageFragment : Fragment() {
     private var binding: FragmentHomepageBinding? = null
     private lateinit var mapView: MapView
     private var locationComponent: LocationComponent? = null
-    private lateinit var mapLibreMap: MapLibreMap
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val api_key = BuildConfig.API_KEY
     private val styleUrl = "https://api.maptiler.com/maps/streets-v2/style.json?key=$api_key"
-//    private val styleUrl = "https://demotiles.maplibre.org/style.json"
+    /*private val styleUrl = "https://demotiles.maplibre.org/style.json"*/
+    private val requiredPermissions = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        when {
+            permissions.getOrDefault(
+                Manifest.permission.ACCESS_FINE_LOCATION, false
+            ) -> {
+
+            }
+            permissions.getOrDefault(
+                Manifest.permission.ACCESS_COARSE_LOCATION, false
+            ) -> {
+
+            }
+            else -> {
+
+            }
+        }
+    }
+    private val gpsActivation = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        updateLocation()
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         binding = FragmentHomepageBinding.inflate(layoutInflater, container, false)
         val view = binding!!.root
         return view
@@ -44,16 +78,59 @@ class HomepageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mapView = binding!!.mapView
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync{ map ->
-            map.setStyle(styleUrl)
-            map.cameraPosition = CameraPosition.Builder().target(LatLng(0.0,0.0)).zoom(1.0).build()
+            map.setStyle(styleUrl) { style ->
+                locationComponent = map.locationComponent
+                locationComponent!!.activateLocationComponent(
+                    LocationComponentActivationOptions
+                        .builder(
+                            requireContext(),
+                            style,
+                        )
+                        .locationComponentOptions(
+                            LocationComponentOptions
+                                .builder(requireContext())
+                                .pulseEnabled(true)
+                                .build()
+                        )
+                        .useDefaultLocationEngine(false)
+                        .build()
+                )
+                locationComponent!!.isLocationComponentEnabled = true
+            }
+            map.cameraPosition = CameraPosition
+                .Builder()
+                .target(LatLng(0.0,0.0))
+                .zoom(1.0)
+                .build()
+            map.setOnMarkerClickListener { m ->
+                map.cameraPosition = CameraPosition
+                    .Builder()
+                    .target(m.position)
+                    .zoom(10.0)
+                    .build()
+                true
+            }
         }
 
-        val getActivityResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            mapView.getMapAsync { locationComponent!!.forceLocationUpdate(locationComponent!!.lastKnownLocation) }
+        val db = Firebase.firestore
+        db.collection("reports").get().addOnSuccessListener { documents ->
+            documents.forEach { documentSnapshot ->
+                val latLng: GeoPoint? = documentSnapshot.getGeoPoint("location")
+                mapView.getMapAsync { map ->
+                    map.addMarker(
+                        MarkerOptions().apply {
+                            title = documentSnapshot.get("subject") as String
+                            position = LatLng(latLng!!.latitude, latLng.longitude)
+                        }
+                    )
+                }
+            }
         }
+
 
         binding!!.mylocationButton.setOnClickListener {
             if (
@@ -63,12 +140,17 @@ class HomepageFragment : Fragment() {
                 val locationManager = activity?.getSystemService(LOCATION_SERVICE) as LocationManager
                 if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     Toast.makeText(requireActivity(), "You need to enable GPS.", Toast.LENGTH_SHORT).show()
-                    getActivityResult.launch(
+                    gpsActivation.launch(
                         Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                     )
+                } else {
+                    updateLocation()
                 }
             } else {
-                requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),  1)
+                requiredPermissions.launch(arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ))
             }
         }
 
@@ -79,6 +161,23 @@ class HomepageFragment : Fragment() {
         binding!!.tolistviewButton.setOnClickListener { view ->
             view.findNavController().navigate(R.id.listViewFragment)
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateLocation() {
+        fusedLocationProviderClient
+            .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
+            .addOnSuccessListener { location ->
+                Log.d("Location", "$location")
+                locationComponent!!.forceLocationUpdate(location)
+                mapView.getMapAsync { map ->
+                    map.cameraPosition = CameraPosition
+                        .Builder()
+                        .target(LatLng(location.latitude,location.longitude))
+                        .zoom(10.0)
+                        .build()
+                }
+            }
     }
 
     override fun onStart() {

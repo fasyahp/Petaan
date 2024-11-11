@@ -33,6 +33,18 @@ android {
             name = "API_KEY",
             value = localProperties["API_KEY"].toString()
         )
+
+        buildConfigField(
+            type = "String",
+            name = "TS_ADMIN_API_KEY",
+            value = localProperties["TS_ADMIN_API_KEY"].toString()
+        )
+
+        buildConfigField(
+            type = "String",
+            name = "TS_SEARCH_API_KEY",
+            value = localProperties["TS_SEARCH_API_KEY"].toString()
+        )
     }
 
     buildFeatures {
@@ -59,14 +71,21 @@ android {
 }
 
 dependencies {
-    //Firebase -> Tambahin dependency-nya di sini
+    implementation("io.appwrite:sdk-for-android:6.0.0")
+    implementation("io.coil-kt.coil3:coil-compose:3.0.2")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.2")
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.algolia.algoliasearch.client.kotlin)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.core)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
-
-    //Play Services
     implementation (libs.play.services.location)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
