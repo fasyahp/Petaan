@@ -55,16 +55,34 @@
             android:textSize="14sp"
             android:layout_marginBottom="4dp"/>
 
-        <EditText
-            android:id="@+id/editPassword"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/edit_shape"
-            android:hint="Password"
-            android:padding="12dp"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/editPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/edit_shape"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:padding="12dp"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/passwordToggle"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignEnd="@id/editPassword"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="12dp"
+                android:src="@drawable/ic_eye_close"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </RelativeLayout>
 
     </LinearLayout>
 
