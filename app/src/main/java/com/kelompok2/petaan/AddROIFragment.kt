@@ -1,9 +1,6 @@
 package com.kelompok2.petaan
 
-import android.content.ContentResolver
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -11,19 +8,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.drawToBitmap
+import androidx.core.view.setPadding
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import coil3.compose.AsyncImage
 import coil3.load
 import coil3.request.allowHardware
 import coil3.request.crossfade
-import coil3.request.transformations
-import coil3.transform.CircleCropTransformation
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
@@ -34,7 +31,6 @@ import io.appwrite.models.InputFile
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.net.URLConnection
 
 class AddROIFragment : Fragment() {
@@ -68,24 +64,6 @@ class AddROIFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         appWriteClient = AppWriteHelper().getClient(requireContext())
-//        binding!!.locationTextField.text =
-/*
-        ViewCompat.setOnApplyWindowInsetsListener(binding!!.addROIAppBarContainer) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<MarginLayoutParams> {
-                topMargin = insets.top
-            }
-            WindowInsetsCompat.CONSUMED
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(binding!!.saveAddReportButton) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<MarginLayoutParams> {
-                bottomMargin = insets.bottom
-            }
-            WindowInsetsCompat.CONSUMED
-        }
-*/
 
         binding!!.addReportImageFab.setOnClickListener{ v ->
             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -154,7 +132,7 @@ class AddROIFragment : Fragment() {
                             .createFile(
                                 bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
                                 fileId = ID.unique(),
-                                file = InputFile.fromBytes(bytes = imageBytes, mimeType = mimeType, filename = "Tes")
+                                file = InputFile.fromBytes(bytes = imageBytes, mimeType = mimeType, filename = subjectTextField.text.toString())
                             )
                         outputStream.close()
                     }
