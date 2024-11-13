@@ -14,7 +14,6 @@ import com.algolia.client.extensions.saveObjects
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.kelompok2.petaan.databinding.FragmentLandingBinding
-import com.kelompok2.petaan.databinding.FragmentSearchBinding
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject

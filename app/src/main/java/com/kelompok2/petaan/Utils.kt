@@ -1,0 +1,78 @@
+package com.kelompok2.petaan
+
+import android.content.Context
+import android.util.Log
+import android.widget.Toast
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import com.algolia.client.api.SearchClient
+import com.google.firebase.firestore.CollectionReference
+import com.algolia.client.model.search.SearchParamsObject
+import com.google.firebase.firestore.GeoPoint
+import io.appwrite.Client
+import io.appwrite.ID
+import io.appwrite.services.Storage
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.*
+
+class Utils {
+    private val searchClient = SearchClient(BuildConfig.ALGOLIA_APP_ID, BuildConfig.ALGOLIA_SEARCH_KEY)
+
+    fun addFirestoreDocument(
+        context: Context,
+        collection: CollectionReference,
+        data: HashMap<String, Any>,
+        onSuccessCallback: (() -> Unit)? = null,
+        onFailedCallback: (() -> Unit)? = null
+    ) {
+        collection
+            .add(data)
+            .addOnSuccessListener { dr ->
+                Log.d("Firebase", "DocumentSnapshot ID: ${dr.id}")
+                Toast.makeText(context, "Report added!", Toast.LENGTH_SHORT).show()
+                onSuccessCallback?.invoke()
+            }
+            .addOnFailureListener { e ->
+                Log.w("Firebase", "Error adding document", e)
+                Toast.makeText(context, "Failed to add report: $e", Toast.LENGTH_SHORT).show()
+                onFailedCallback?.invoke()
+            }
+    }
+
+    suspend fun indexRecordsToAlgolia(data: HashMap<String, Any>) {
+        val location: GeoPoint? = data.get("location") as GeoPoint
+        val geoloc = buildJsonObject {
+            put("lat", location?.latitude)
+            put("lng", location?.longitude)
+        }
+        val record = buildJsonObject {
+            put("subject", data.get("subject").toString())
+            put("_geoloc", geoloc)
+            put("severity", data.get("severity").toString().toInt())
+            put("imageId", data.get("image").toString())
+        }
+        searchClient.saveObject("reports_index", record)
+    }
+
+    suspend fun search(query: String): MutableList<SearchItem> {
+        val list = mutableListOf<SearchItem>()
+        val results = searchClient.searchSingleIndex(
+            indexName = "reports_index",
+            searchParams = SearchParamsObject(
+                query = query
+            )
+        )
+        results.hits.forEach { hit ->
+            val location = hit.additionalProperties?.get("_geoloc") as JsonObject
+            val searchItem = SearchItem(
+                subject = hit.additionalProperties?.get("subject").toString(),
+                location = "${location["lat"]}, ${location["lng"]}",
+                objectId = hit.objectID,
+                imageId = hit.additionalProperties?.get("imageId").toString()
+            )
+            list.add(searchItem)
+        }
+        return list
+    }
+}

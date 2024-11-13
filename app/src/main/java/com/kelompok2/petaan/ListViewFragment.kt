@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import com.kelompok2.petaan.databinding.FragmentAddroiBinding
 import com.kelompok2.petaan.databinding.FragmentListviewBinding
-import com.kelompok2.petaan.databinding.FragmentSearchBinding
 
 class ListViewFragment : Fragment() {
 

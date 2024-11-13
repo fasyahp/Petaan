@@ -11,11 +11,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.drawToBitmap
-import androidx.core.view.setPadding
-import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import coil3.load
@@ -95,25 +91,22 @@ class AddROIFragment : Fragment() {
                 val latLng = locationTextField.text?.split(",")
 
                 val imageId = ID.unique()
-                val db = Firebase.firestore
-                val report = hashMapOf(
+                val report = hashMapOf<String, Any>(
                     "subject" to subjectTextField.text.toString(),
                     "description" to descriptionTextField.text.toString(),
                     "severity" to severity,
                     "location" to GeoPoint(latLng!![0].toDouble(), latLng[1].toDouble()),
                     "image" to imageId
                 )
-                db.collection("reports")
-                    .add(report)
-                    .addOnSuccessListener { dr ->
-                        Log.d("Firebase", "DocumentSnapshot ID: ${dr.id}")
-                        Toast.makeText(requireContext(), "Report added!", Toast.LENGTH_SHORT).show()
-                        v.findNavController().navigate(R.id.homepageFragment)
-                    }
-                    .addOnFailureListener { e ->
-                        Log.w("Firebase", "Error adding document", e)
-                        Toast.makeText(requireContext(), "Failed to add report: $e", Toast.LENGTH_SHORT).show()
-                    }
+                Utils().addFirestoreDocument(
+                    requireContext(),
+                    Firebase.firestore.collection("reports"),
+                    report,
+                    { v.findNavController().navigate(R.id.homepageFragment) }
+                )
+                lifecycleScope.launch {
+                    Utils().indexRecordsToAlgolia(report)
+                }
 
                 val bitmap = binding!!.reportImageView.drawToBitmap()
                 val outputStream = ByteArrayOutputStream()
@@ -131,7 +124,7 @@ class AddROIFragment : Fragment() {
                             .getStorage(appWriteClient)
                             .createFile(
                                 bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
-                                fileId = ID.unique(),
+                                fileId = imageId,
                                 file = InputFile.fromBytes(bytes = imageBytes, mimeType = mimeType, filename = subjectTextField.text.toString())
                             )
                         outputStream.close()

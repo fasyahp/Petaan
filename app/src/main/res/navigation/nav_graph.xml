@@ -20,11 +20,6 @@
             app:exitAnim="@anim/nav_default_pop_exit_anim" />
     </fragment>
     <fragment
-        android:id="@+id/searchFragment"
-        android:name="com.kelompok2.petaan.SearchFragment"
-        android:label="SearchFragment"
-        tools:layout="@layout/fragment_search"/>
-    <fragment
         android:id="@+id/profileFragment"
         android:name="com.kelompok2.petaan.ProfileFragment"
         android:label="fragment_profile"
@@ -43,4 +38,13 @@
         android:name="com.kelompok2.petaan.ListViewFragment"
         android:label="fragment_listview"
         tools:layout="@layout/fragment_listview" />
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.kelompok2.petaan.SearchFragment"
+        android:label="fragment_search"
+        tools:layout="@layout/fragment_search" >
+        <action
+            android:id="@+id/action_searchFragment_to_homepageFragment"
+            app:destination="@id/homepageFragment" />
+    </fragment>
 </navigation>
