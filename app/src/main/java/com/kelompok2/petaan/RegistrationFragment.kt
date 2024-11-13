@@ -61,7 +61,6 @@ class RegistrationFragment : Fragment() {
                                     .set(user)
                                     .addOnSuccessListener {
                                         Toast.makeText(requireContext(), "Registration Successful", Toast.LENGTH_SHORT).show()
-                                        // Optionally navigate to another fragment or activity
                                     }
                                     .addOnFailureListener { e ->
                                         Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
