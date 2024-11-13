@@ -1,16 +1,20 @@
 package com.kelompok2.petaan
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.findNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.kelompok2.petaan.databinding.FragmentLandingBinding
 
 class LandingFragment : Fragment() {
 
     private var binding: FragmentLandingBinding? = null
+    private lateinit var firebaseAuth: FirebaseAuth
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -24,11 +28,26 @@ class LandingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding!!.landingLoginButton.setOnClickListener { view ->
-            view.findNavController().navigate(R.id.loginFragment)
-        }
-        binding!!.landingRegisterButton.setOnClickListener { view ->
-            view.findNavController().navigate(R.id.registrationFragment)
+
+        firebaseAuth = FirebaseAuth.getInstance()
+
+        val currentUser = firebaseAuth.currentUser
+        if (currentUser != null) {
+            // User is already logged in, navigate to MainActivity
+            startActivity(
+                Intent(requireContext(), MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            )
+            requireActivity().finish()
+        } else {
+            // User is not logged in, show login/register options
+            binding?.landingLoginButton?.setOnClickListener {
+                (activity as AuthActivity).navigateToFragment(LoginFragment())
+            }
+            binding?.landingRegisterButton?.setOnClickListener {
+                (activity as AuthActivity).navigateToFragment(RegistrationFragment())
+            }
         }
     }
 }

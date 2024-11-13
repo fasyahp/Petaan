@@ -28,6 +28,7 @@ navigationFragment = "2.8.3"
 okhttp = "2.7.5"
 playServicesLocation = "21.3.0"
 secretsGradlePlugin = "2.0.1"
+firebaseAuth = "23.1.0"
 
 [libraries]
 algolia-algoliasearch-client-kotlin = { module = "com.algolia:algoliasearch-client-kotlin", version.ref = "algoliasearchClientKotlinVersion" }
@@ -63,6 +64,7 @@ material-v1120 = { module = "com.google.android.material:material", version.ref 
 okhttp = { module = "com.squareup.okhttp:okhttp", version.ref = "okhttp" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
