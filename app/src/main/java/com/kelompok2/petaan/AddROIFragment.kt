@@ -62,7 +62,27 @@ class AddROIFragment : Fragment() {
     private val gpsActivation = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        updateLocation()
+        updateLocation(fusedLocationProviderClient)
+    }
+    private val requiredPermissions = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        when {
+            permissions.getOrDefault(
+                Manifest.permission.ACCESS_FINE_LOCATION, false
+            ) -> {
+
+            }
+            permissions.getOrDefault(
+                Manifest.permission.ACCESS_COARSE_LOCATION, false
+            ) -> {
+
+            }
+            else -> {
+
+            }
+        }
+        updateLocation(fusedLocationProviderClient)
     }
 
     override fun onCreateView(
@@ -80,134 +100,129 @@ class AddROIFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         appWriteClient = AppWriteHelper().getClient(requireContext())
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         if (
-            ContextCompat.checkSelfPermission(
-                requireActivity(),
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         ) {
             val locationManager = activity?.getSystemService(LOCATION_SERVICE) as LocationManager
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                Toast.makeText(requireActivity(), "You need to enable GPS.", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireActivity(), "You need to enable GPS.", Toast.LENGTH_SHORT).show()
                 gpsActivation.launch(
                     Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 )
             } else {
-                updateLocation()
+                updateLocation(fusedLocationProviderClient)
             }
+        } else {
+            requiredPermissions.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ))
+        }
 
-            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        binding!!.addReportImageFab.setOnClickListener { v ->
+            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
 
+        binding!!.saveAddReportButton.setOnClickListener { v ->
 
-            binding!!.addReportImageFab.setOnClickListener { v ->
-                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }
+            val severityDropdown = binding!!.severityDropDown
+            val subjectTextField = binding!!.subjectTextField
+            val descriptionTextField = binding!!.descriptionTextField
+            val locationTextField = binding!!.locationTextField
+            val reportImageView = binding!!.reportImageView
 
-            binding!!.saveAddReportButton.setOnClickListener { v ->
+            if (
+                !severityDropdown.text.toString().trim().isEmpty() &&
+                !subjectTextField.text.toString().trim().isEmpty() &&
+                !descriptionTextField.text.toString().trim().isEmpty() &&
+                !locationTextField.text.toString().trim().isEmpty() &&
+                reportImageView.drawable != null
+            ) {
+                val severity = when (severityDropdown.text.toString()) {
+                    "Low" -> 1
+                    "Moderate" -> 2
+                    "High" -> 3
+                    "Critical" -> 4
+                    "Emergency" -> 5
+                    else -> -1
+                }
+                val latLng = locationTextField.text?.split(",")
 
-                val severityDropdown = binding!!.severityDropDown
-                val subjectTextField = binding!!.subjectTextField
-                val descriptionTextField = binding!!.descriptionTextField
-                val locationTextField = binding!!.locationTextField
-                val reportImageView = binding!!.reportImageView
+                val imageId = ID.unique()
+                val report = hashMapOf<String, Any>(
+                    "subject" to subjectTextField.text.toString(),
+                    "description" to descriptionTextField.text.toString(),
+                    "severity" to severity,
+                    "location" to GeoPoint(latLng!![0].toDouble(), latLng[1].toDouble()),
+                    "image" to imageId
+                )
+                Utils().addFirestoreDocument(
+                    requireContext(),
+                    Firebase.firestore.collection("reports"),
+                    report,
+                    { v.findNavController().navigate(R.id.homepageFragment) }
+                )
+                lifecycleScope.launch {
+                    Utils().indexRecordsToAlgolia(report)
+                }
 
-                if (
-                    !severityDropdown.text.toString().trim().isEmpty() &&
-                    !subjectTextField.text.toString().trim().isEmpty() &&
-                    !descriptionTextField.text.toString().trim().isEmpty() &&
-                    !locationTextField.text.toString().trim().isEmpty() &&
-                    reportImageView.drawable != null
-                ) {
-                    val severity = when (severityDropdown.text.toString()) {
-                        "Low" -> 1
-                        "Moderate" -> 2
-                        "High" -> 3
-                        "Critical" -> 4
-                        "Emergency" -> 5
-                        else -> -1
-                    }
-                    val latLng = locationTextField.text?.split(",")
+                val bitmap = binding!!.reportImageView.drawToBitmap()
+                val outputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                val imageBytes = outputStream.toByteArray()
 
-                    val imageId = ID.unique()
-                    val report = hashMapOf<String, Any>(
-                        "subject" to subjectTextField.text.toString(),
-                        "description" to descriptionTextField.text.toString(),
-                        "severity" to severity,
-                        "location" to GeoPoint(latLng!![0].toDouble(), latLng[1].toDouble()),
-                        "image" to imageId
-                    )
-                    Utils().addFirestoreDocument(
-                        requireContext(),
-                        Firebase.firestore.collection("reports"),
-                        report,
-                        { v.findNavController().navigate(R.id.homepageFragment) }
-                    )
+                val byteArrayInputStream = ByteArrayInputStream(imageBytes)
+                val mimeType = URLConnection.guessContentTypeFromStream(byteArrayInputStream)
+                Log.d("MIME", "$mimeType")
+                byteArrayInputStream.close()
+
+                try {
                     lifecycleScope.launch {
-                        Utils().indexRecordsToAlgolia(report)
-                    }
-
-                    val bitmap = binding!!.reportImageView.drawToBitmap()
-                    val outputStream = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                    val imageBytes = outputStream.toByteArray()
-
-                    val byteArrayInputStream = ByteArrayInputStream(imageBytes)
-                    val mimeType = URLConnection.guessContentTypeFromStream(byteArrayInputStream)
-                    Log.d("MIME", "$mimeType")
-                    byteArrayInputStream.close()
-
-                    try {
-                        lifecycleScope.launch {
-                            AppWriteHelper()
-                                .getStorage(appWriteClient)
-                                .createFile(
-                                    bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
-                                    fileId = imageId,
-                                    file = InputFile.fromBytes(
-                                        bytes = imageBytes,
-                                        mimeType = mimeType,
-                                        filename = subjectTextField.text.toString()
-                                    )
+                        AppWriteHelper()
+                            .getStorage(appWriteClient)
+                            .createFile(
+                                bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
+                                fileId = imageId,
+                                file = InputFile.fromBytes(
+                                    bytes = imageBytes,
+                                    mimeType = mimeType,
+                                    filename = subjectTextField.text.toString()
                                 )
-                            outputStream.close()
-                        }
-                    } catch (e: Error) {
-                        Log.d("AppWriteError", "$e")
+                            )
+                        outputStream.close()
                     }
-                } else {
-                    if (severityDropdown.text.toString().trim().isEmpty()) {
-                        severityDropdown.error = "This field is required."
-                    }
-                    if (subjectTextField.text.toString().trim().isEmpty()) {
-                        subjectTextField.error = "This field is required."
-                    }
-                    if (descriptionTextField.text.toString().trim().isEmpty()) {
-                        descriptionTextField.error = "This field is required."
-                    }
-                    if (locationTextField.text.toString().trim().isEmpty()) {
-                        locationTextField.error = "This field is required."
-                    }
-                    if (reportImageView.drawable == null) {
-                        Toast.makeText(
-                            requireContext(),
-                            "You have to specify an image.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                } catch (e: Error) {
+                    Log.d("AppWriteError", "$e")
+                }
+            } else {
+                if (severityDropdown.text.toString().trim().isEmpty()) {
+                    severityDropdown.error = "This field is required."
+                }
+                if (subjectTextField.text.toString().trim().isEmpty()) {
+                    subjectTextField.error = "This field is required."
+                }
+                if (descriptionTextField.text.toString().trim().isEmpty()) {
+                    descriptionTextField.error = "This field is required."
+                }
+                if (locationTextField.text.toString().trim().isEmpty()) {
+                    locationTextField.error = "This field is required."
+                }
+                if (reportImageView.drawable == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        "You have to specify an image.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
-
     @SuppressLint("MissingPermission")
-    private fun updateLocation() {
-        fusedLocationProviderClient.getCurrentLocation(
+    private fun updateLocation(client: FusedLocationProviderClient) {
+        client.getCurrentLocation(
             Priority.PRIORITY_HIGH_ACCURACY,
             CancellationTokenSource().token
         ).addOnSuccessListener { location ->
