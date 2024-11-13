@@ -8,7 +8,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
-import io.appwrite.services.Storage
 
 class SearchAdapter(private val dataset: MutableList<SearchItem>) : RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
 

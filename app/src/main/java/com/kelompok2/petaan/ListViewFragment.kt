@@ -5,7 +5,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.kelompok2.petaan.databinding.FragmentAddroiBinding
 import com.kelompok2.petaan.databinding.FragmentListviewBinding
 
 class ListViewFragment : Fragment() {

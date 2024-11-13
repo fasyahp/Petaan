@@ -3,20 +3,10 @@ package com.kelompok2.petaan
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.LifecycleCoroutineScope
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.algolia.client.api.SearchClient
 import com.google.firebase.firestore.CollectionReference
 import com.algolia.client.model.search.SearchParamsObject
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.firebase.firestore.GeoPoint
-import io.appwrite.Client
-import io.appwrite.ID
-import io.appwrite.services.Storage
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.*
 
 class Utils {
