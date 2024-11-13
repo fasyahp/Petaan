@@ -12,13 +12,18 @@
         app:cardBackgroundColor="?attr/colorSecondaryContainer">
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <ImageView
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp">
+            <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/search_result_image"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearanceOverlay="@style/circleImageView"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:scaleType="centerCrop"
+                android:adjustViewBounds="true"/>
             <TextView
                 android:id="@+id/search_result_subject"
                 android:layout_width="wrap_content"
