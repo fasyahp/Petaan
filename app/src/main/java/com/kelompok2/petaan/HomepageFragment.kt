@@ -119,14 +119,18 @@ class HomepageFragment : Fragment() {
         val db = Firebase.firestore
         db.collection("reports").get().addOnSuccessListener { documents ->
             documents.forEach { documentSnapshot ->
-                val latLng: GeoPoint? = documentSnapshot.getGeoPoint("location")
-                mapView.getMapAsync { map ->
-                    map.addMarker(
-                        MarkerOptions().apply {
-                            title = documentSnapshot.get("subject") as String
-                            position = LatLng(latLng!!.latitude, latLng.longitude)
-                        }
-                    )
+                try {
+                    val latLng: GeoPoint? = documentSnapshot.getGeoPoint("location")
+                    mapView.getMapAsync { map ->
+                        map.addMarker(
+                            MarkerOptions().apply {
+                                title = documentSnapshot.get("subject") as String
+                                position = LatLng(latLng!!.latitude, latLng.longitude)
+                            }
+                        )
+                    }
+                } catch (e: RuntimeException) {
+                    Log.d("FIRESTOREERROR", "$e")
                 }
             }
         }
