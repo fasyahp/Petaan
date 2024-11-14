@@ -98,7 +98,6 @@ class AddROIFragment : Fragment() {
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         appWriteClient = AppWriteHelper().getClient(requireContext())
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
@@ -226,8 +225,12 @@ class AddROIFragment : Fragment() {
             Priority.PRIORITY_HIGH_ACCURACY,
             CancellationTokenSource().token
         ).addOnSuccessListener { location ->
-            val text = "${location.latitude}, ${location.longitude}"
-            binding!!.locationTextField.setText(text)
+            try {
+                val text = "${location.latitude}, ${location.longitude}"
+                binding!!.locationTextField.setText(text)
+            } catch (e: NullPointerException) {
+                Log.d("ERROR", "$e")
+            }
         }
     }
 }
