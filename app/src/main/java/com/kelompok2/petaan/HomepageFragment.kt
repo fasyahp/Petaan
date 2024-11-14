@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity.LOCATION_SERVICE
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.navArgs
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -66,6 +67,9 @@ class HomepageFragment : Fragment() {
     ) {
         updateLocation()
     }
+
+    private val args: HomepageFragmentArgs by navArgs()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -77,8 +81,13 @@ class HomepageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         mapView = binding!!.mapView
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        val db = Firebase.firestore
+
+        val searchItemImageId = args.imageId
+//        db.collection("reports").whereEqualTo("image", searchItemImageId)
 
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync{ map ->
@@ -116,7 +125,6 @@ class HomepageFragment : Fragment() {
             }
         }
 
-        val db = Firebase.firestore
         db.collection("reports").get().addOnSuccessListener { documents ->
             documents.forEach { documentSnapshot ->
                 try {

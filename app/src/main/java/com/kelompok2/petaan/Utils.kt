@@ -33,7 +33,29 @@ class Utils {
             }
     }
 
-    suspend fun indexRecordsToAlgolia(data: HashMap<String, Any>) {
+    fun addFirestoreDocument(
+        context: Context,
+        documentId: String,
+        collection: CollectionReference,
+        data: HashMap<String, Any>,
+        onSuccessCallback: (() -> Unit)? = null,
+        onFailedCallback: (() -> Unit)? = null
+    ) {
+        collection.document(documentId)
+            .set(data)
+            .addOnSuccessListener { dr ->
+                Log.d("Firebase", "$documentId added.")
+                Toast.makeText(context, "Report added!", Toast.LENGTH_SHORT).show()
+                onSuccessCallback?.invoke()
+            }
+            .addOnFailureListener { e ->
+                Log.w("Firebase", "Error adding document", e)
+                Toast.makeText(context, "Failed to add report: $e", Toast.LENGTH_SHORT).show()
+                onFailedCallback?.invoke()
+            }
+    }
+
+    suspend fun indexRecordsToAlgolia(data: HashMap<String, Any>, objectId: String) {
         val location: GeoPoint? = data.get("location") as GeoPoint
         val geoloc = buildJsonObject {
             put("lat", location?.latitude)
@@ -43,9 +65,8 @@ class Utils {
             put("subject", data.get("subject").toString())
             put("_geoloc", geoloc)
             put("severity", data.get("severity").toString().toInt())
-            put("imageId", data.get("image").toString())
         }
-        searchClient.saveObject("reports_index", record)
+        searchClient.addOrUpdateObject("reports_index", objectId, record)
     }
 
     suspend fun search(query: String): MutableList<SearchItem> {
@@ -62,7 +83,6 @@ class Utils {
                 subject = hit.additionalProperties?.get("subject").toString(),
                 location = "${location["lat"]}, ${location["lng"]}",
                 objectId = hit.objectID,
-                imageId = hit.additionalProperties?.get("imageId").toString()
             )
             list.add(searchItem)
         }

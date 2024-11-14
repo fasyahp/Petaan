@@ -14,7 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.search.SearchView
 import com.kelompok2.petaan.databinding.FragmentSearchBinding
+import io.appwrite.exceptions.AppwriteException
 import io.appwrite.services.Storage
+import kotlinx.coroutines.async
 
 class SearchFragment : Fragment() {
 
@@ -34,7 +36,12 @@ class SearchFragment : Fragment() {
         binding.searchView.show()
 
         var dataset = mutableListOf<SearchItem>()
-        var adapter = SearchAdapter(dataset)
+        var adapter = SearchAdapter(dataset) { position ->
+            val action = SearchFragmentDirections.actionSearchFragmentToHomepageFragment(
+                dataset[position].objectId
+            )
+            findNavController().navigate(action)
+        }
         val recyclerView: RecyclerView = binding.searchRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
@@ -48,14 +55,17 @@ class SearchFragment : Fragment() {
             lifecycleScope.launch {
                 dataset = Utils().search(text.toString())
                 val client = AppWriteHelper().getClient(requireContext())
-                dataset.forEach { item ->
-                    Log.d("IMAGEID", item.imageId.replace("\n", ""))
-                    item.image = Storage(client).getFileView(
-                        bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
-                        fileId = item.imageId.replace("\"", "")
-                    )
-                }
-                //TODO: Crop foto
+/*                dataset.forEach { item ->
+                    Log.d("IMAGEID", item.objectId.replace("\n", ""))
+                    try {
+                        item.image = Storage(client).getFileView(
+                            bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
+                            fileId = item.objectId.replace("\"", "")
+                        )
+                    } catch (e: AppwriteException) {
+                        Log.d("APPWRITEEXCEPTION", "$e")
+                    }
+                }*/
                 adapter.updateData(dataset)
                 Log.d("ALGOLIASEARCH", dataset.joinToString("\n"))
                 Log.d("ADAPTERCOUNT", "${adapter.itemCount}")

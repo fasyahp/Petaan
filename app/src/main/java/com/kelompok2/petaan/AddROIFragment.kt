@@ -157,16 +157,16 @@ class AddROIFragment : Fragment() {
                     "description" to descriptionTextField.text.toString(),
                     "severity" to severity,
                     "location" to GeoPoint(latLng!![0].toDouble(), latLng[1].toDouble()),
-                    "image" to imageId
                 )
                 Utils().addFirestoreDocument(
                     requireContext(),
+                    imageId,
                     Firebase.firestore.collection("reports"),
                     report,
                     { v.findNavController().navigate(R.id.homepageFragment) }
                 )
                 lifecycleScope.launch {
-                    Utils().indexRecordsToAlgolia(report)
+                    Utils().indexRecordsToAlgolia(report, imageId)
                 }
 
                 val bitmap = binding!!.reportImageView.drawToBitmap()
