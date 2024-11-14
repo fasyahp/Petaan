@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -82,7 +81,7 @@ class AddROIFragment : Fragment() {
 
             }
         }
-        updateLocation(fusedLocationProviderClient)
+        getPermissionAndGPS()
     }
 
     override fun onCreateView(
@@ -101,25 +100,7 @@ class AddROIFragment : Fragment() {
         appWriteClient = AppWriteHelper().getClient(requireContext())
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-        if (
-            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val locationManager = activity?.getSystemService(LOCATION_SERVICE) as LocationManager
-            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                Toast.makeText(requireActivity(), "You need to enable GPS.", Toast.LENGTH_SHORT).show()
-                gpsActivation.launch(
-                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                )
-            } else {
-                updateLocation(fusedLocationProviderClient)
-            }
-        } else {
-            requiredPermissions.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ))
-        }
+        getPermissionAndGPS()
 
         binding!!.addReportImageFab.setOnClickListener { v ->
             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -219,6 +200,29 @@ class AddROIFragment : Fragment() {
             }
         }
     }
+
+    private fun getPermissionAndGPS() {
+        if (
+            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val locationManager = activity?.getSystemService(LOCATION_SERVICE) as LocationManager
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                Toast.makeText(requireActivity(), "You need to enable GPS.", Toast.LENGTH_SHORT).show()
+                gpsActivation.launch(
+                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                )
+            } else {
+                updateLocation(fusedLocationProviderClient)
+            }
+        } else {
+            requiredPermissions.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ))
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun updateLocation(client: FusedLocationProviderClient) {
         client.getCurrentLocation(
