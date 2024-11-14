@@ -14,9 +14,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.search.SearchView
 import com.kelompok2.petaan.databinding.FragmentSearchBinding
-import io.appwrite.exceptions.AppwriteException
-import io.appwrite.services.Storage
-import kotlinx.coroutines.async
 
 class SearchFragment : Fragment() {
 
@@ -54,18 +51,6 @@ class SearchFragment : Fragment() {
         binding.searchView.editText.doOnTextChanged { text, _, _, _ ->
             lifecycleScope.launch {
                 dataset = Utils().search(text.toString())
-                val client = AppWriteHelper().getClient(requireContext())
-/*                dataset.forEach { item ->
-                    Log.d("IMAGEID", item.objectId.replace("\n", ""))
-                    try {
-                        item.image = Storage(client).getFileView(
-                            bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
-                            fileId = item.objectId.replace("\"", "")
-                        )
-                    } catch (e: AppwriteException) {
-                        Log.d("APPWRITEEXCEPTION", "$e")
-                    }
-                }*/
                 adapter.updateData(dataset)
                 Log.d("ALGOLIASEARCH", dataset.joinToString("\n"))
                 Log.d("ADAPTERCOUNT", "${adapter.itemCount}")
