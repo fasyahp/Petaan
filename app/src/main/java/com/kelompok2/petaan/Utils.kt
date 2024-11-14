@@ -4,8 +4,8 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import com.algolia.client.api.SearchClient
-import com.google.firebase.firestore.CollectionReference
 import com.algolia.client.model.search.SearchParamsObject
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.GeoPoint
 import kotlinx.serialization.json.*
 

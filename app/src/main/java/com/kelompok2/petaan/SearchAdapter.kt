@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
@@ -18,7 +17,6 @@ import io.appwrite.services.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class SearchAdapter(private val dataset: MutableList<SearchItem>, private val onItemClicked: (Int) -> Unit) : RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
 
@@ -85,6 +83,6 @@ class SearchAdapter(private val dataset: MutableList<SearchItem>, private val on
     fun clear() {
         val size = dataset.size
         dataset.clear()
-        notifyItemRangeRemoved(0, dataset.size)
+        notifyItemRangeRemoved(0, size)
     }
 }
