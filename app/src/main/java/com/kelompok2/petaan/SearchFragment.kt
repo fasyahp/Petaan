@@ -49,11 +49,15 @@ class SearchFragment : Fragment() {
             }
         }
         binding.searchView.editText.doOnTextChanged { text, _, _, _ ->
-            lifecycleScope.launch {
-                dataset = Utils().search(text.toString())
-                adapter.updateData(dataset)
-                Log.d("ALGOLIASEARCH", dataset.joinToString("\n"))
-                Log.d("ADAPTERCOUNT", "${adapter.itemCount}")
+            if (text!!.isEmpty()) {
+                adapter.clear()
+            } else {
+                lifecycleScope.launch {
+                    dataset = Utils().search(text.toString())
+                    adapter.updateData(dataset)
+                    Log.d("ALGOLIASEARCH", dataset.joinToString("\n"))
+                    Log.d("ADAPTERCOUNT", "${adapter.itemCount}")
+                }
             }
         }
     }

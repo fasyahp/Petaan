@@ -80,7 +80,7 @@ class Utils {
         results.hits.forEach { hit ->
             val location = hit.additionalProperties?.get("_geoloc") as JsonObject
             val searchItem = SearchItem(
-                subject = hit.additionalProperties?.get("subject").toString(),
+                subject = hit.additionalProperties?.get("subject").toString().replace("\"", ""),
                 location = "${location["lat"]}, ${location["lng"]}",
                 objectId = hit.objectID,
             )
