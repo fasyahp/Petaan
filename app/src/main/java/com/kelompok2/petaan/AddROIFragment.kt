@@ -1,29 +1,33 @@
 package com.kelompok2.petaan
 
-import android.content.ContentResolver
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context.LOCATION_SERVICE
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
+import android.location.LocationManager
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.drawToBitmap
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
-import coil3.compose.AsyncImage
 import coil3.load
 import coil3.request.allowHardware
 import coil3.request.crossfade
-import coil3.request.transformations
-import coil3.transform.CircleCropTransformation
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
@@ -34,7 +38,6 @@ import io.appwrite.models.InputFile
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.net.URLConnection
 
 class AddROIFragment : Fragment() {
@@ -42,16 +45,43 @@ class AddROIFragment : Fragment() {
     private var binding: FragmentAddroiBinding? = null
     private lateinit var appWriteClient: Client
     private lateinit var mimeType: String
-    private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) {
-            binding!!.reportImageView.load(uri) {
-                crossfade(true)
-                allowHardware(false)
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private val pickMedia =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                binding!!.reportImageView.load(uri) {
+                    crossfade(true)
+                    allowHardware(false)
+                }
+                Log.d("Photo Picker", "Selected URI: $uri")
+            } else {
+                Log.d("Photo Picker", "No media selected.")
             }
-            Log.d("Photo Picker", "Selected URI: $uri")
-        } else {
-            Log.d("Photo Picker", "No media selected.")
         }
+    private val gpsActivation = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        updateLocation(fusedLocationProviderClient)
+    }
+    private val requiredPermissions = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        when {
+            permissions.getOrDefault(
+                Manifest.permission.ACCESS_FINE_LOCATION, false
+            ) -> {
+
+            }
+            permissions.getOrDefault(
+                Manifest.permission.ACCESS_COARSE_LOCATION, false
+            ) -> {
+
+            }
+            else -> {
+
+            }
+        }
+        getPermissionAndGPS()
     }
 
     override fun onCreateView(
@@ -64,30 +94,15 @@ class AddROIFragment : Fragment() {
         return view
     }
 
+    @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         appWriteClient = AppWriteHelper().getClient(requireContext())
-//        binding!!.locationTextField.text =
-/*
-        ViewCompat.setOnApplyWindowInsetsListener(binding!!.addROIAppBarContainer) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<MarginLayoutParams> {
-                topMargin = insets.top
-            }
-            WindowInsetsCompat.CONSUMED
-        }
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding!!.saveAddReportButton) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<MarginLayoutParams> {
-                bottomMargin = insets.bottom
-            }
-            WindowInsetsCompat.CONSUMED
-        }
-*/
+        getPermissionAndGPS()
 
-        binding!!.addReportImageFab.setOnClickListener{ v ->
+        binding!!.addReportImageFab.setOnClickListener { v ->
             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
@@ -117,25 +132,22 @@ class AddROIFragment : Fragment() {
                 val latLng = locationTextField.text?.split(",")
 
                 val imageId = ID.unique()
-                val db = Firebase.firestore
-                val report = hashMapOf(
+                val report = hashMapOf<String, Any>(
                     "subject" to subjectTextField.text.toString(),
                     "description" to descriptionTextField.text.toString(),
                     "severity" to severity,
                     "location" to GeoPoint(latLng!![0].toDouble(), latLng[1].toDouble()),
-                    "image" to imageId
                 )
-                db.collection("reports")
-                    .add(report)
-                    .addOnSuccessListener { dr ->
-                        Log.d("Firebase", "DocumentSnapshot ID: ${dr.id}")
-                        Toast.makeText(requireContext(), "Report added!", Toast.LENGTH_SHORT).show()
-                        v.findNavController().navigate(R.id.homepageFragment)
-                    }
-                    .addOnFailureListener { e ->
-                        Log.w("Firebase", "Error adding document", e)
-                        Toast.makeText(requireContext(), "Failed to add report: $e", Toast.LENGTH_SHORT).show()
-                    }
+                Utils().addFirestoreDocument(
+                    requireContext(),
+                    imageId,
+                    Firebase.firestore.collection("reports"),
+                    report,
+                    { v.findNavController().navigate(R.id.homepageFragment) }
+                )
+                lifecycleScope.launch {
+                    Utils().indexRecordsToAlgolia(report, imageId)
+                }
 
                 val bitmap = binding!!.reportImageView.drawToBitmap()
                 val outputStream = ByteArrayOutputStream()
@@ -153,8 +165,12 @@ class AddROIFragment : Fragment() {
                             .getStorage(appWriteClient)
                             .createFile(
                                 bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
-                                fileId = ID.unique(),
-                                file = InputFile.fromBytes(bytes = imageBytes, mimeType = mimeType, filename = "Tes")
+                                fileId = imageId,
+                                file = InputFile.fromBytes(
+                                    bytes = imageBytes,
+                                    mimeType = mimeType,
+                                    filename = subjectTextField.text.toString()
+                                )
                             )
                         outputStream.close()
                     }
@@ -175,8 +191,49 @@ class AddROIFragment : Fragment() {
                     locationTextField.error = "This field is required."
                 }
                 if (reportImageView.drawable == null) {
-                    Toast.makeText(requireContext(), "You have to specify an image.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "You have to specify an image.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
+            }
+        }
+    }
+
+    private fun getPermissionAndGPS() {
+        if (
+            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val locationManager = activity?.getSystemService(LOCATION_SERVICE) as LocationManager
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                Toast.makeText(requireActivity(), "You need to enable GPS.", Toast.LENGTH_SHORT).show()
+                gpsActivation.launch(
+                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                )
+            } else {
+                updateLocation(fusedLocationProviderClient)
+            }
+        } else {
+            requiredPermissions.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ))
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateLocation(client: FusedLocationProviderClient) {
+        client.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            CancellationTokenSource().token
+        ).addOnSuccessListener { location ->
+            try {
+                val text = "${location.latitude}, ${location.longitude}"
+                binding!!.locationTextField.setText(text)
+            } catch (e: NullPointerException) {
+                Log.d("ERROR", "$e")
             }
         }
     }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
@@ -17,6 +18,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity.LOCATION_SERVICE
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -41,7 +44,6 @@ class HomepageFragment : Fragment() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val api_key = BuildConfig.API_KEY
     private val styleUrl = "https://api.maptiler.com/maps/streets-v2/style.json?key=$api_key"
-    /*private val styleUrl = "https://demotiles.maplibre.org/style.json"*/
     private val requiredPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -66,6 +68,9 @@ class HomepageFragment : Fragment() {
     ) {
         updateLocation()
     }
+
+    private val args: HomepageFragmentArgs by navArgs()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -77,8 +82,10 @@ class HomepageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         mapView = binding!!.mapView
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        val db = Firebase.firestore
 
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync{ map ->
@@ -116,21 +123,44 @@ class HomepageFragment : Fragment() {
             }
         }
 
-        val db = Firebase.firestore
         db.collection("reports").get().addOnSuccessListener { documents ->
             documents.forEach { documentSnapshot ->
-                val latLng: GeoPoint? = documentSnapshot.getGeoPoint("location")
-                mapView.getMapAsync { map ->
-                    map.addMarker(
-                        MarkerOptions().apply {
-                            title = documentSnapshot.get("subject") as String
-                            position = LatLng(latLng!!.latitude, latLng.longitude)
-                        }
-                    )
+                try {
+                    val latLng: GeoPoint? = documentSnapshot.getGeoPoint("location")
+                    mapView.getMapAsync { map ->
+                        map.addMarker(
+                            MarkerOptions().apply {
+                                title = documentSnapshot.get("subject") as String
+                                position = LatLng(latLng!!.latitude, latLng.longitude)
+                            }
+                        )
+                    }
+                } catch (e: RuntimeException) {
+                    Log.d("FIRESTOREERROR", "$e")
                 }
             }
         }
 
+        if (findNavController().previousBackStackEntry?.destination?.id == R.id.searchFragment) {
+            val searchItemImageId = args.imageId
+            db.collection("reports").document(searchItemImageId.toString())
+                .get()
+                .addOnSuccessListener { document ->
+                    Log.d("FIRESTOREGET", "SUCCESS")
+                    try {
+                        val geoPoint: GeoPoint? = document.get("location") as GeoPoint?
+                        val location: Location = Location("")
+                        location.latitude = geoPoint!!.latitude
+                        location.longitude = geoPoint.longitude
+                        updateLocation(location)
+                    } catch (e: NullPointerException) {
+                        Log.d("SEARCHRESULT", "$e")
+                    }
+                }
+                .addOnFailureListener {
+                    Log.d("FIRESTOREGET", "FAILED")
+                }
+        }
 
         binding!!.mylocationButton.setOnClickListener {
             if (
@@ -178,6 +208,19 @@ class HomepageFragment : Fragment() {
                         .build()
                 }
             }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateLocation(location: Location) {
+        Log.d("Location", "$location")
+        locationComponent!!.forceLocationUpdate(location)
+        mapView.getMapAsync { map ->
+            map.cameraPosition = CameraPosition
+                .Builder()
+                .target(LatLng(location.latitude,location.longitude))
+                .zoom(10.0)
+                .build()
+        }
     }
 
     override fun onStart() {

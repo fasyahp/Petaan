@@ -2,9 +2,6 @@ package com.kelompok2.petaan
 
 import android.content.Context
 import io.appwrite.Client
-import io.appwrite.ID
-import io.appwrite.models.File
-import io.appwrite.services.Account
 import io.appwrite.services.Storage
 
 class AppWriteHelper {

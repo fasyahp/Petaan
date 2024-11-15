@@ -9,20 +9,13 @@ import androidx.navigation.ui.setupWithNavController
 import com.kelompok2.petaan.databinding.ActivityMainBinding
 import org.maplibre.android.MapLibre
 
-import com.algolia.client.api.SearchClient
-import com.algolia.client.extensions.*
-
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import java.net.URI
-
 class MainActivity : AppCompatActivity() {
 //    requestForPermissionLauncher.launch(Manifest.permission.INTERNET)
 //    ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED &&
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         MapLibre.getInstance(this)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -41,5 +34,7 @@ class MainActivity : AppCompatActivity() {
                 binding.bottomNavigation.visibility = View.VISIBLE
             }
         }
+
+
     }
 }
