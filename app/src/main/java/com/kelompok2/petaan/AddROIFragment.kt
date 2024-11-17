@@ -145,6 +145,7 @@ class AddROIFragment : Fragment() {
                     report,
                     { v.findNavController().navigate(R.id.homepageFragment) }
                 )
+
                 lifecycleScope.launch {
                     Utils().indexRecordsToAlgolia(report, imageId)
                 }
