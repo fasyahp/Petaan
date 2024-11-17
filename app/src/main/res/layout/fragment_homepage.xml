@@ -77,15 +77,13 @@
                     android:id="@+id/location_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Jalan Soekarno Hatta"
                     android:textStyle="bold"
-                    android:textColor="#FFFFFF" />
+                    android:textColor="#DDDDDD" />
 
                 <TextView
                     android:id="@+id/location_description"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pohon Tumbang"
                     android:textColor="#DDDDDD" />
             </LinearLayout>
         </LinearLayout>

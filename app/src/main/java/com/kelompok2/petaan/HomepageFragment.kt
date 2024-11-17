@@ -125,32 +125,34 @@ class HomepageFragment : Fragment() {
                 .zoom(1.0)
                 .build()
             map.setOnMarkerClickListener { marker ->
-                // Ambil ID lokasi dari tag marker
-                // salahe disini ges ga mendeteksi apa apa
-                val locationId = marker.id as? String
-                Log.d("MarkerClick", "Location ID: ${locationId}")
+                val latitude = marker.position.latitude
+                val longitude = marker.position.longitude
 
-                // Jika tag ada, fetch data dari Firestore
-                if (locationId != null) {
+                if (latitude != null && longitude != null) {
                     val db = Firebase.firestore
-                    db.collection("reports").document(locationId).get()
-                        .addOnSuccessListener { document ->
-                            if (document.exists()) {
-                                // Ambil data dari dokumen
+                    val userLocation = GeoPoint(latitude, longitude)
+
+
+                    // Query untuk mencari laporan berdasarkan latitude dan longitude yang tepat
+                    db.collection("reports")
+                        .whereEqualTo("location", userLocation)
+                        .get()
+                        .addOnSuccessListener { result ->
+                            if (!result.isEmpty) {
+                                val document = result.documents.first()
                                 val title = document.getString("subject") ?: "Unknown Title"
                                 val description = document.getString("description") ?: "No description"
                                 val imageUrl = document.getString("image_url") // URL gambar jika tersedia
 
-                                // Update UI dengan data lokasi
                                 binding?.apply {
                                     locationTitle.text = title
                                     locationDescription.text = description
 
-                                    // Jika ada URL gambar, unduh gambar menggunakan library seperti Glide
-//                                    Glide.with(requireContext())
-//                                        .load(imageUrl)
-//                                        .placeholder(R.drawable.placeholder_image)
-//                                        .into(locationImage)
+                                    // Update UI jika ada URL gambar
+                                    // Glide.with(requireContext())
+                                    //    .load(imageUrl)
+                                    //    .placeholder(R.drawable.placeholder_image)
+                                    //    .into(locationImage)
 
                                     // Tampilkan layout location_info
                                     locationInfo.visibility = View.VISIBLE
@@ -164,6 +166,7 @@ class HomepageFragment : Fragment() {
 
                 true // Mencegah zoom pada klik marker
             }
+
             map.addOnMapClickListener {
                 // Sembunyikan layout location_info
                 binding?.locationInfo?.visibility = View.GONE
