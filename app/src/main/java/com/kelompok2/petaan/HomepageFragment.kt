@@ -137,9 +137,11 @@ class HomepageFragment : Fragment() {
                 .target(LatLng(0.0, 0.0))
                 .zoom(1.0)
                 .build()
+
             map.setOnMarkerClickListener { marker ->
                 val latitude = marker.position.latitude
                 val longitude = marker.position.longitude
+                var documentId : String = ""
 
                 if (latitude != null && longitude != null) {
                     val db = Firebase.firestore
@@ -155,7 +157,7 @@ class HomepageFragment : Fragment() {
                                 val document = result.documents.first()
                                 val title = document.getString("subject") ?: "Unknown Title"
                                 val description = document.getString("description") ?: "No description"
-                                val imageUrl = document.getString("image_url") // URL gambar jika tersedia
+                                documentId = document.id
 
                                 binding?.apply {
                                     locationTitle.text = title
@@ -176,12 +178,6 @@ class HomepageFragment : Fragment() {
                                         }
                                     }
 
-                                    // Update UI jika ada URL gambar
-                                    // Glide.with(requireContext())
-                                    //    .load(imageUrl)
-                                    //    .placeholder(R.drawable.placeholder_image)
-                                    //    .into(locationImage)
-
                                     // Tampilkan layout location_info
                                     locationInfo.visibility = View.VISIBLE
                                 }
@@ -190,7 +186,21 @@ class HomepageFragment : Fragment() {
                         .addOnFailureListener { exception ->
                             Log.e("FirestoreError", "Failed to fetch location data: $exception")
                         }
+
+                    binding!!.deleteButton.setOnClickListener(){
+                        db.collection("reports")
+                            .document(documentId)
+                            .delete()
+                            .addOnSuccessListener {
+                                Log.d("Firestore", "DocumentSnapshot successfully deleted!")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w("Firestore", "Error deleting document", e)
+                            }
+                    }
+
                 }
+
 
                 true // Mencegah zoom pada klik marker
             }
