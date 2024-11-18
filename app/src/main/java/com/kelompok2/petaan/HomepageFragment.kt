@@ -2,6 +2,7 @@ package com.kelompok2.petaan
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -23,6 +24,8 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import coil3.load
+import coil3.request.fallback
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -31,6 +34,12 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.firestore
 import com.kelompok2.petaan.databinding.FragmentHomepageBinding
+import io.appwrite.Client
+import io.appwrite.exceptions.AppwriteException
+import io.appwrite.services.Storage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.maplibre.android.annotations.Marker
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
@@ -43,6 +52,8 @@ import kotlin.random.Random
 
 class HomepageFragment : Fragment() {
 
+    private lateinit var context: Context
+    private lateinit var client: Client
     private var currentMarker: Marker? = null
     private var binding: FragmentHomepageBinding? = null
     private lateinit var mapView: MapView
@@ -84,6 +95,8 @@ class HomepageFragment : Fragment() {
     ): View {
         binding = FragmentHomepageBinding.inflate(layoutInflater, container, false)
         val view = binding!!.root
+        context = view.context
+        client = AppWriteHelper().getClient(context)
         return view
     }
 
@@ -147,6 +160,21 @@ class HomepageFragment : Fragment() {
                                 binding?.apply {
                                     locationTitle.text = title
                                     locationDescription.text = description
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        locationImage.load(
+                                            try {
+                                                Storage(client).getFileView(
+                                                    bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
+                                                    fileId = document.id
+                                                )
+                                            } catch (e: AppwriteException) {
+                                                Log.d("APPWRITEEXCEPTION", "$e")
+                                                null
+                                            }
+                                        ) {
+                                            fallback(R.drawable.baseline_broken_image_24)
+                                        }
+                                    }
 
                                     // Update UI jika ada URL gambar
                                     // Glide.with(requireContext())
