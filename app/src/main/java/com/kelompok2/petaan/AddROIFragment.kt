@@ -148,6 +148,7 @@ class AddROIFragment : Fragment() {
                     imageId,
                     Firebase.firestore.collection("reports"),
                     report,
+                    binding!!.addRoiProgressIndicator,
                     { v.findNavController().navigate(R.id.homepageFragment) }
                 )
                 lifecycleScope.launch {
