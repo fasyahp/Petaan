@@ -57,6 +57,7 @@ class HomepageFragment : Fragment() {
     private var currentMarker: Marker? = null
     private var binding: FragmentHomepageBinding? = null
     private lateinit var mapView: MapView
+    private var mapLoad: Boolean? = null
     private var locationComponent: LocationComponent? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val api_key = BuildConfig.API_KEY
@@ -112,6 +113,7 @@ class HomepageFragment : Fragment() {
         //Kode di dalam lambda akan dijalankan setelah map siap digunakan
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync { map ->
+            mapLoad = true
             map.setStyle(styleUrl) { style ->
                 locationComponent = map.locationComponent
                 locationComponent!!.activateLocationComponent(
