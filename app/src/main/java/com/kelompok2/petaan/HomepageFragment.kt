@@ -40,6 +40,7 @@ import io.appwrite.services.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.Marker
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
@@ -47,6 +48,7 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponent
 import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.LocationComponentOptions
+import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import kotlin.random.Random
 
@@ -57,7 +59,7 @@ class HomepageFragment : Fragment() {
     private var currentMarker: Marker? = null
     private var binding: FragmentHomepageBinding? = null
     private lateinit var mapView: MapView
-    private var mapLoad: Boolean? = null
+    private var mapInstance: MapLibreMap? = null
     private var locationComponent: LocationComponent? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val api_key = BuildConfig.API_KEY
@@ -103,7 +105,8 @@ class HomepageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        val locationInfo = binding!!.locationInfo
+        locationInfo.visibility = View.GONE
 
         mapView = binding!!.mapView
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -113,7 +116,7 @@ class HomepageFragment : Fragment() {
         //Kode di dalam lambda akan dijalankan setelah map siap digunakan
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync { map ->
-            mapLoad = true
+            mapInstance = map
             map.setStyle(styleUrl) { style ->
                 locationComponent = map.locationComponent
                 locationComponent!!.activateLocationComponent(
@@ -212,9 +215,7 @@ class HomepageFragment : Fragment() {
                 binding?.locationInfo?.visibility = View.GONE
                 true // Return true untuk menangani klik
             }
-
         }
-
 
         db.collection("reports").get().addOnSuccessListener { documents ->
             documents.forEach { documentSnapshot ->
