@@ -107,6 +107,8 @@ class HomepageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val locationInfo = binding!!.locationInfo
         locationInfo.visibility = View.GONE
+        val locationImage = binding!!.locationImage
+
 
         mapView = binding!!.mapView
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -205,7 +207,11 @@ class HomepageFragment : Fragment() {
                     }
 
                 }
-
+                locationImage.setOnClickListener {
+                    // Navigate using file ID
+                    val directions = HomepageFragmentDirections.actionHomeFragmentToFullscreenImageFragment(documentId)
+                    findNavController().navigate(directions)
+                }
 
                 true // Mencegah zoom pada klik marker
             }
@@ -215,6 +221,7 @@ class HomepageFragment : Fragment() {
                 binding?.locationInfo?.visibility = View.GONE
                 true // Return true untuk menangani klik
             }
+
         }
 
         db.collection("reports").get().addOnSuccessListener { documents ->
@@ -280,6 +287,7 @@ class HomepageFragment : Fragment() {
                 ))
             }
         }
+
 
         binding!!.addButton.setOnClickListener { view ->
             view.findNavController().navigate(R.id.addROIFragment)
