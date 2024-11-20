@@ -174,7 +174,7 @@ class HomepageFragment : Fragment() {
                                             try {
                                                 Storage(client).getFileView(
                                                     bucketId = BuildConfig.APP_WRITE_BUCKET_ID,
-                                                    fileId = document.id
+                                                    fileId = documentId
                                                 )
                                             } catch (e: AppwriteException) {
                                                 Log.d("APPWRITEEXCEPTION", "$e")

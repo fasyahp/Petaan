@@ -60,7 +60,7 @@
     <fragment
         android:id="@+id/FullscreenImageFragment"
         android:name="com.kelompok2.petaan.FullscreenImageFragment"
-        android:label="FullScreenImageFragment">
+        android:label="FullscreenImageFragment">
         <argument
             android:name="fileId"
             app:argType="string"/>
