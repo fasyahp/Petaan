@@ -50,9 +50,14 @@ class SearchFragment : Fragment() {
         }
         binding.searchView.editText.doOnTextChanged { text, _, _, _ ->
             if (text!!.isEmpty()) {
-                adapter.clear()
+                recyclerView.layoutManager = null
+                recyclerView.adapter = null
             } else {
                 lifecycleScope.launch {
+                    if (recyclerView.layoutManager == null && recyclerView.adapter == null) {
+                        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+                        recyclerView.adapter = adapter
+                    }
                     dataset = Utils().search(text.toString())
                     adapter.updateData(dataset)
                     Log.d("ALGOLIASEARCH", dataset.joinToString("\n"))
@@ -60,5 +65,5 @@ class SearchFragment : Fragment() {
                 }
             }
         }
-    }
+      }
 }
