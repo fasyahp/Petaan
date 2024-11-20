@@ -44,31 +44,31 @@ class RegistrationFragment : Fragment() {
 
 
             if (email.isNotEmpty() && password.isNotEmpty() && username.isNotEmpty() && name.isNotEmpty()) {
-                    firebaseAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            val userId = firebaseAuth.currentUser?.uid
+                firebaseAuth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        val userId = firebaseAuth.currentUser?.uid
 
-                            // Create a user object with name and username
-                            val user = hashMapOf(
-                                "name" to name,
-                                "username" to username,
-                                "email" to email
-                            )
+                        // Create a user object with name and username
+                        val user = hashMapOf(
+                            "name" to name,
+                            "username" to username,
+                            "email" to email
+                        )
 
-                            // Store user data in Firestore under "users" collection
-                            if (userId != null) {
-                                firestore.collection("users").document(userId)
-                                    .set(user)
-                                    .addOnSuccessListener {
-                                        Toast.makeText(requireContext(), "Registration Successful", Toast.LENGTH_SHORT).show()
-                                    }
-                                    .addOnFailureListener { e ->
-                                        Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-                                    }
-                            } else {
-                                Toast.makeText(requireContext(), task.exception?.message, Toast.LENGTH_SHORT).show()
-                            }
+                        // Store user data in Firestore under "users" collection
+                        if (userId != null) {
+                            firestore.collection("users").document(userId)
+                                .set(user)
+                                .addOnSuccessListener {
+                                    Toast.makeText(requireContext(), "Registration Successful", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener { e ->
+                                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        } else {
+                            Toast.makeText(requireContext(), task.exception?.message, Toast.LENGTH_SHORT).show()
                         }
+                    }
             } else {
                 Toast.makeText(requireContext(), "All fields are required", Toast.LENGTH_SHORT).show()
             }
