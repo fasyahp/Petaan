@@ -71,6 +71,7 @@ android {
 }
 
 dependencies {
+    implementation("com.airbnb.android:lottie:6.6.0")
     implementation("io.appwrite:sdk-for-android:6.0.0")
     implementation("io.coil-kt.coil3:coil-compose:3.0.2")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.2")
